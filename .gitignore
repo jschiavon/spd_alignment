@@ -1,0 +1,16 @@
+.vscode/
+.ipynb_checkpoints/
+.python-version
+
+# LaTeX auxiliary
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+
+# Datasets
+*.csv
