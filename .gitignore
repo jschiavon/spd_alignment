@@ -1,6 +1,10 @@
+# Environment stuff
 .vscode/
 .ipynb_checkpoints/
 .python-version
+
+# Python bins
+*.pyc
 
 # LaTeX auxiliary
 *.aux
