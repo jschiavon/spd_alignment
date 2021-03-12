@@ -1,0 +1,7 @@
+# Required packages
+numpy >= 1.19
+pandas >= 1.0
+
+# Notebooks
+matplotlib
+seaborn
