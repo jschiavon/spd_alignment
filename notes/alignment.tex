@@ -1,0 +1,267 @@
+\documentclass[fleqn]{article}
+
+\usepackage[no-math]{fontspec}
+\usepackage[OT1]{eulervm}
+\usepackage{microtype,ifthen}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,braket,cancel}
+\usepackage{titlesec}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[style=numeric-comp,backend=biber,doi=false,isbn=false,url=false,date=year]{biblatex}
+\usepackage{hyperref}
+
+% Fonts
+\defaultfontfeatures{%
+    RawFeature={%
+        +calt   % *Contextual alternates
+        ,+clig  % *contextual ligatures
+        ,+ccmp  % *composition & decomposition
+        ,+tlig  % 'tex-ligatures': `` '' -- --- !` ?` << >>
+        ,+cv06  % narrow guillemets
+    }%
+}
+\setmainfont{EB Garamond}
+\newfontfamily{\smallcaps}[RawFeature={+c2sc,+scmp}]{EB Garamond}
+\newfontfamily{\swash}[RawFeature={+swsh}]{EB Garamond}
+
+% Sections
+\titleformat{\section}{\normalfont \Large \scshape}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont \large \scshape}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont \scshape}{\thesubsubsection}{0.5em}{}
+\pagestyle{headings}
+\renewcommand{\thesection}{\roman{section}}
+\renewcommand{\thesubsection}{\thesection.\roman{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\roman{subsubsection}}
+
+% Theorems
+\newtheoremstyle{definition}{}{}{\itshape}{\parindent}{\scshape}{.}{1em}{\thmname{#1}\thmnumber{ #2}:}
+\newtheoremstyle{theorem}{}{}{}{\parindent}{\scshape}{}{1em}{\thmname{#1}\thmnumber{ #2}:}
+\theoremstyle{theorem}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}[lemma]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newcommand{\lemmaref}[1]{Lemma~\textsc{\ref{#1}}}
+
+% Math operators
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator{\logm}{Log}
+\DeclareMathOperator{\tr}{Tr}
+\newcommand{\norm}[2][]{\left\Vert#2\right\Vert_{#1}}
+
+% Metadata
+\title{Alignment of SPD matrices to a common reference}
+\newcommand{\myName}{Jacopo Schiavon}
+\newcommand{\myMail}{\href{mailto:jschiavon@stat.unipd.it}{\ttfamily jschiavon@stat.unipd.it}}
+\newcommand{\myDept}{Department of Statistical Sciences, University of Padova}
+\author{\myName\thanks{\myDept. Contact: \myMail}}
+\hypersetup{pdfauthor={\myName},
+    pdfcreator={\myName},
+    breaklinks=True,
+    colorlinks=true,       	% false: boxed links; true: colored links
+    linkcolor=MidnightBlue, % color of internal links
+    citecolor=ForestGreen,	% color of links to bibliography
+    filecolor=Plum,			% color of file links
+    urlcolor=Sepia			% color of url link
+}
+
+% Bibliography
+\setlength\bibitemsep{1.5\itemsep}
+\setlength\bibhang{1.5\parindent}
+\renewcommand*{\mkbibnamefamily}[1]{\textsc{#1}}
+\renewcommand*{\mkbibnamegiven}[1]{\textsc{#1}}
+\renewcommand*{\mkbibnameprefix}[1]{\textsc{#1}}
+\renewcommand*{\mkbibnamesuffix}[1]{\textsc{#1}}
+\renewcommand*{\labelnamepunct}{\par}
+\addbibresource{biblio.bib}
+
+%\setlength{\parindent}{0pt}
+
+
+\begin{document}
+    \maketitle
+
+    \section{Introduction and notation}
+    Let $\mathbb{O}_p$ be the space of $p$-dimensional orthogonal matrix and $\mathcal{S}_p^+$ be the space of Symmetric and Positive Definite (SPD) matrices. In the following, unless needed, we will omit the subscript $p$.
+
+    Let $\Sigma_1, \Sigma_2 \in \mathcal{S}^+$ be two SPD matrices, we define the geodesic distance induced by the \emph{affine-invariant} metric \cite{Bhatia2007} as
+    \begin{equation}\label{eq:dist}
+        d(\Sigma_1, \Sigma_2)^2 = \norm[AI]{\Sigma_1^{-1/2}\Sigma_2\Sigma_1^{-1/2}}^2
+    \end{equation}
+    where the norm of $\Sigma\in\mathcal{S}^+$ is defined as ($\lambda_i(\Sigma)$ are the eigenvalues of the matrix $\Sigma$)
+    \begin{align}
+        \norm[AI]{\Sigma}^2 &= \sum_{h=1}^{p} \log^2\lambda_h(\Sigma)\label{eq:norm}\\
+        &= \norm[F]{\logm\Sigma}^2\nonumber
+    \end{align}
+    where $\logm(\cdot)$ is the matrix logarithm (which for SPD matrices can be computed analytically via the singular value decomposition) and $\norm[F]{\cdot}$ is the frobenius norm (the sum of the eigenvalues).
+
+    It is useful to note that the fact that $\lambda_i(\Sigma) > 0$ for all $i$ if $\Sigma\in\mathcal{S}^+$ implies that the norm in equation~\eqref{eq:norm} is well defined. Moreover, it can be helpful to observe that $\lambda_i(\Sigma_1^{-1}\Sigma_2) = \lambda_i(\Sigma_1^{-1/2}\Sigma_2\Sigma_1^{-1/2})$. Using this fact, it is immediate to prove that the following identity, which will be useful later, holds:
+    \begin{equation}\label{eq:substitution}
+        \norm[AI]{\Sigma_1^{-1/2}\Sigma_2\Sigma_1^{-1/2}}^2 = \norm[AI]{\Sigma_1^{-1}\Sigma_2}^2.
+    \end{equation}
+
+    Finally, we introduce a particular notation from \cite{Bhatia1997}.  Given $x=(x_1, \dots, x_n)\in\mathbb{R}^n$, we define $x^\uparrow$ and $x^\downarrow$ to be the vectors obtained by arranging the components of $x$ respectively in increasing and decreasing order. Moreover, we say that $x\prec y$ ($x$ is \emph{majorised} by $y$) if
+    \begin{align*}
+        \sum_{i=1}^{k}x_i &\leq \sum_{i=1}^{k}y_i \quad \text{for } k<n &  &\text{and}  &    \sum_{i=1}^{n}x_i &= \sum_{i=1}^{n}y_i.
+    \end{align*}
+
+    \section{Orthogonal Procrustes problem}
+    The orthogonal Procrustes problem consists in finding the orthogonal matrix $\Omega$ that most closely maps $A$ to $B$. The problem is stated for generic matrices with the distance induced by the Frobenius norm and its solution is given by the following lemma:
+    \begin{lemma}\label{thm:procr}
+        Given two matrices $A$ and $B$ with $BA^\top\! = U\Sigma V^\top$ the singular value decomposition of their product, then
+        \begin{equation}\label{eq:procr}
+            \argmin_{\Omega\in\mathbb{O}}\norm[F]{\Omega A - B}^2 = UV^\top
+        \end{equation}
+    \end{lemma}
+    \begin{proof}
+        The simplest proof relies on the properties of the inner product related to the Frobenius norm:
+        \begin{align*}
+            R 	&= \argmin_{\Omega\in\mathbb{O}}\norm[F]{\Omega A - B}^2\\
+            &= \argmin_{\Omega\in\mathbb{O}}\braket{\Omega A - B,\; \Omega A - B}\\
+            &= \argmin_{\Omega\in\mathbb{O}}\norm[F]{\Omega A}^2 + \norm[F]{B}^2 - 2\braket{\Omega A,\; B}\\
+            &= \argmin_{\Omega\in\mathbb{O}}\norm[F]{A}^2 + \norm[F]{B}^2 - 2\braket{\Omega A,\; B}\\
+            &= \argmax_{\Omega\in\mathbb{O}}\braket{\Omega A,\; B} = \argmax_{\Omega\in\mathbb{O}}\braket{\Omega,\;  BA^\top} \\
+            &= \argmax_{\Omega\in\mathbb{O}}\braket{\Omega,\; U\Sigma V^\top}\\
+            &= U\left(\argmax_{\Omega\in\mathbb{O}}\braket{U^\top\Omega V,\; \Sigma}\right)V^\top
+        \end{align*}
+        Considering that $\Sigma$ is diagonal by construction and that $U^\top\Omega V$ is orthogonal, this inner product is maximum \cite{gower_procrustes_2004} when $U^\top\Omega V$ is the identity, thus leaving $R = UV^\top$.
+    \end{proof}
+
+    \section{Procrustes-like problem for  SPD matrices}
+    It is easy to see that the product $\Omega\Sigma$ with $\Omega\in\mathbb{O}$ does not preserve the positive definiteness $\Sigma\in\mathcal{S}^+$. It can be proved \cite{tuan_positive_2010}, fortunately, that it does indeed exists a class of transformations that preserve the positive definiteness of a matrix. This class can be parameterized by an invertible matrix $W\in GL$ as
+    \begin{align}\label{eq:orthogonaltransf}
+        T_W\colon \mathcal{S}^+ &\to \mathcal{S}^+\\
+        \Sigma &\mapsto T_W(\Sigma) = W\Sigma W^\top.\nonumber
+    \end{align}
+    The orthogonal group of matrices is still of interest in that it preserves the norm of a matrix, and as such we can restate the Procrustes problem as the search for an orthogonal matrix $\Omega\in\mathbb{O}$ that, when applied with transformation~\eqref{eq:orthogonaltransf} to a matrix $\Sigma_2$, minimizes the affine-invariant distance between the transformed $\Sigma_2$ and a reference $\Sigma_1$.
+
+    \begin{lemma}\label{thm:procr-spd}
+        Let $\Sigma_1,\Sigma_2\in\mathcal{S}^+$ be two SPD matrices and let $\Sigma_i=\Gamma_i\Lambda_i\Gamma_i^\top$ the eigenvalue decomposition for each matrix. Then
+        \begin{equation}\label{eq:procr-spd}
+            \argmin_{\Omega\in\mathbb{O}}d\left(\Sigma_1, T_\Omega(\Sigma_2)\right)^2 = \argmin_{\Omega\in\mathbb{O}}d(\Sigma_1, \Omega\Sigma_2\Omega^\top)^2 = \Gamma_1\Gamma_2^\top
+        \end{equation}
+    \end{lemma}
+    \noindent This lemma is proved with more generality by \citeauthor{bhatia_procrustes_2019} in \cite{bhatia_procrustes_2019}, and we repeat the proof here with the notation slightly changed for the sake of consistency.
+
+    \begin{proof}
+        First we recall the substitution \eqref{eq:substitution}, which allows us to write
+        \begin{equation*}
+            d(\Sigma_1, \Sigma_2)^2 = \left[\sum_h^p\log^2\lambda_h\left(\Sigma_1^{-1}\Sigma_2\right)\right]
+        \end{equation*}
+        Then we use a result on majorization for eigenvalues from Gel'fand, Naimark and Lidskii \parencite[theorem \textsc{iii}.4.6 in][73]{Bhatia1997}, which states that
+        \begin{equation*}
+            \log\lambda^\downarrow(\Sigma_1) + \log\lambda^\uparrow(\Sigma_2) \prec \log\lambda(\Sigma_1\Sigma_2) \prec \log\lambda^\downarrow(\Sigma_1) + \log\lambda^\downarrow(\Sigma_2)
+        \end{equation*}
+        or equivalently (if we replace $\Sigma_2$ with its inverse):
+        \begin{equation*}
+            \log\lambda^\downarrow(\Sigma_1) - \log\lambda^\downarrow(\Sigma_2) \prec \log\lambda(\Sigma_1\Sigma_2^{-1}) \prec \log\lambda^\downarrow(\Sigma_1) - \log\lambda^\uparrow(\Sigma_2).
+        \end{equation*}
+        This set of inequalities holds also for any gauge function of the sequence of the logarithms of the eigenvalues (such as the sum of squares of the elements, see \cite[\S~\textsc{iv}]{Bhatia1997} on the general definition of \emph{gauge function}) and thus implies that
+        \begin{equation*}
+            d(\Lambda_1^\downarrow, \Lambda_2^\downarrow)^2 \leq d(\Sigma_1, \Sigma_2)^2 \leq d(\Lambda_1^\downarrow, \Lambda_2^\uparrow)^2
+        \end{equation*}
+
+        Now it is sufficient to observe that the left and right hand sides of this inequality do not change if we replace $\Sigma_2$ with $\Omega\Sigma_2\Omega^\top$, which means that to obtain the minimum of $d(\Sigma_1, \Omega\Sigma_2\Omega^\top)$ we need that
+        \begin{equation*}
+            \lambda\left(\Gamma_1^{-\top}\Lambda_1^{-1}\Gamma_1^{-1}\Omega\Gamma_2\Lambda_2\Gamma_2^\top\Omega^\top\right) = \lambda\left(\Lambda_1^{-1}\Lambda_2\right)
+        \end{equation*}
+        which implies (using the cyclic property of the trace)
+        \begin{equation*}
+            \Omega =  \Gamma_1\Gamma_2^\top
+        \end{equation*}
+        as we wanted to show.
+    \end{proof}
+
+    \section{Extension to multiple matrices}
+    Let assume that we have $n$ SPD matrices $\left\lbrace\Sigma_i\right\rbrace_{i=1}^n$ of fixed rank $p$ and that we are interested in finding the $n$ orthogonal matrices $\vec{\Omega} = \Omega_i$ that \emph{most closely maps all the matrices together}. We can state this problem in two formal ways:
+    \begin{enumerate}
+        \item We are interested in finding the set of matrices that minimize the pairwise distances:
+        \begin{equation*}
+            \argmin_{\vec\Omega\in\mathbb{O}} \sum_i^n\sum_{j>i}^nd\left(T_{\Omega_i}(\Sigma_i), T_{\Omega_j}(\Sigma_j)\right)^2
+        \end{equation*}
+        \item We are interested in finding the set of matrices that minimize the distances with respect to a fixed reference $M$:
+        \begin{equation*}
+            \argmin_{\vec\Omega\in\mathbb{O}} \sum_i^nd\left(M, T_{\Omega_j}(\Sigma_j)\right)^2
+        \end{equation*}
+    \end{enumerate}
+    The first problem of course does not admit a unique solution, as one can rotate every set of matrices in infinite ways, but we can modify it slightly by fixing a matrix $\Sigma_k$ as reference
+    \begin{equation*}
+        \argmin_{\vec\Omega\in\mathbb{O}} \sum_{i\neq k}^n d\left(\Sigma_k, T_{\Omega_i}(\Sigma_i)\right)^2 + \sum_{i,j\neq k; j>i}^nd\left(T_{\Omega_i}(\Sigma_i), T_{\Omega_j}(\Sigma_j)\right)^2.
+    \end{equation*}
+
+    Rewritten in this way, the first problem is actually a particular case of the second one, so we will only provide the solution to the latter in the following lemma.
+    \begin{lemma}
+        Let $\lbrace\Sigma_i\in\mathcal{S}^+\rbrace_{i=1}^n$ a set of SPD matrices and let $M\in\mathcal{S}^+$ a reference SPD matrix. Let $\Sigma_i = \Gamma_i\Lambda_i\Gamma_i^\top$ and $M = \Gamma_M\Lambda_M\Gamma_M$ the eigenvalue decomposition respectively of $\Sigma_i$ and of $M$ and let $T_\Omega\Sigma_i = \Omega_i\Sigma_i\Omega_i^\top$ the transformed matrix $\Sigma_i$ and $\vec{\Omega}$ the set of orthogonal transformations. Then,
+        \begin{equation}\label{eq:generalized-proc-spd}
+            \argmin_{\vec\Omega\in\mathbb{O}} = \sum_i^n d(M, T_{\Omega_i}(\Sigma_i))^2 = \left\lbrace\Gamma_M\Gamma_i^\top\right\rbrace_{i=1}^n
+        \end{equation}
+    \end{lemma}
+
+    \begin{proof}
+        To prove this result it is sufficient to observe that each $d(M, T_{\Omega_i}(\Sigma_i))^2\geq 0$ for every $i$ and every choice of $\Omega$ and moreover there are not cross-dependencies between the terms, thus the minimum of the sum is achieved at the minimum of each term. Then the result follows by repeatedly applying \lemmaref{thm:procr-spd}.
+    \end{proof}
+
+    \section{The optimal reference matrix}
+    Given the result obtained in the previous section, it is interesting to ask if it exists a (unique) solution to the problem
+    \begin{equation}\label{eq:optiref}
+        \argmin_{M\in\mathcal{S}^+} \sum_i^nd\left(M, T_{\Omega_i}(\Sigma_i)\right)^2 \qquad \text{with } \Omega_i = \Gamma_M\Gamma_i^\top
+    \end{equation}
+    which asks if there is an \emph{optimal} matrix to use as a reference for the rotations, and considers optimal the matrix that will be the closest to the rotated elements.
+
+    \subsection{Relations with the geometrical mean (or Karcher mean)}
+    This problem resembles the expression of the geometrical mean of a set of SPD matrices, known in literature as the \emph{Karcher} mean, which is defined as the matrix $M$ that minimizes
+    \begin{equation*}
+        \argmin_{M\in\mathcal{S}^+} = \sum_i^nd\left(M, \Sigma_i\right)^2 = \sum_i^n\left[\sum_h^p\log^2\lambda_h\left(M^{-1}\Sigma_i\right)\right].
+    \end{equation*}
+    Even if this and problem~\eqref{eq:optiref} looks very similar, the only difference being the rotation transformation $T_{\Omega_i}$, this apparently small difference together with the expression of the rotations~\eqref{eq:generalized-proc-spd}, will allow various simplifications in the expression, providing the possibility of an elegant and simple analytical solution which is not available in the general Karcher mean problem.
+
+    \subsection{Eigenvalues of the optimal reference matrix}
+    By writing explicitly this expression and using expression~\eqref{eq:generalized-proc-spd} for the rotations we obtain
+    \begin{align}
+        \sum_i^n d \left(M, T_{\Omega_i}(\Sigma_i)\right)^2 &= \sum_i^n\left[\sum_h^p\log^2\lambda_h\left(M^{-1}T_{\Omega_i}(\Sigma_i)\right)\right] \nonumber\\
+        &= \sum_i^n\left[\sum_h^p\log^2\lambda_h\left(M^{-1}\Gamma_M\Gamma_i^\top\Sigma_i\Gamma_i\Gamma_M^\top\right)\right] \nonumber\\
+        &=  \sum_i^n \left[\sum_h^p \log^2\lambda_h \left(\cancel{\Gamma_M}\Lambda_M^{-1}\cancel{\Gamma_M^\top\Gamma_M}\cancel{\Gamma_i^\top\Gamma_i}\Lambda_i\cancel{\Gamma_i^\top\Gamma_i}\cancel{\Gamma_M^\top}\right)\right] \nonumber\\
+        &= \sum_i^n\left[\sum_h^p\log^2\lambda_h\left(\Lambda_M^{-1}\Lambda_i\right)\right]\label{eq:optirefsimplified}
+    \end{align}
+    From this we can observe that the final expression depends only on the eigenvalues of $M$. This implies two things:
+    \begin{enumerate}
+        \item Since $M = \Gamma_M\Lambda_M\Gamma_M^\top$ but equation~\eqref{eq:optirefsimplified} depends only on the eigenvalues $\Lambda_M$, there are infinite solutions $M$ that solves the problem, as one can chose any matrix $\Gamma_M\in\mathbb{O}$ as the eigenvector matrix.
+        \item On the other side, the solution for the eigenvalues can be obtained as a standard optimization in an euclidean constrained setting. Indeed, it can be rewritten as
+        \begin{equation*}
+            \argmin_{\vec{\lambda}\in\mathbb{R}^p_+} = \sum_i^n\sum_h^p\log^2\left(\frac{\alpha_{ih}}{\lambda_h}\right)
+        \end{equation*}
+        where $\alpha_{ji}$ is the $i$th eigenvalue of the $j$-th matrix and $\lambda_i$ the $i$th eigenvalue of the objective matrix.
+        This problem has a simple and elegant analytical solution, as the minimum of this function is achieved in
+        \begin{equation}\label{eq:optiref-sol-eigval}
+            \lambda_h =\left[\prod_{i=1}^n\alpha_{ih}\right]^{\frac{1}{n}}
+        \end{equation}
+        as can be seen by computing the gradient and noticing that each component is independent and there is only one zero. From the continuity of the function and its limits for $\lambda_h\to0$ and $\lambda_h\to+\infty$ we see that this is indeed a minimum.
+    \end{enumerate}
+
+    \subsection{Eigenvectors of the optimal reference matrix}
+    In order to select a reference matrix $M$, as discussed in the previous paragraph, we then need to choose a matrix $\Gamma_M$, which is the eigenvector matrix. From a formal standpoint the only requirement is that this matrix need to be orthogonal, which does not restrict much the possible choices, thus we need to add an heuristic constraint that can limit the choice.
+
+    Again, we will follow a minimization approach: given the expression~\eqref{eq:generalized-proc-spd}, we see that the rotations depends only on the eigenvector matrix, thus it might be interesting to select the matrix $\Gamma_M$ that minimizes the \emph{rotational effort}, or in other words the matrix $\Gamma_M$ that generates the smallest rotations. This can be achieved by minimizing the term
+    \begin{equation}
+        \argmin_{\Gamma\in\mathbb{O}} \sum_i^n\norm[F]{\Gamma\Gamma_i^\top - \mathbb{I}}^2
+    \end{equation}
+    It is immediate to observe the resemblance between this equation and equation~\eqref{eq:procr}. Indeed, this problem might be seen as a generalization to the Procrustes problem to the case of $n$ matrices. Such problem does not have a solution in general, but the particular case that we are analyzing allows a simple expression.
+
+    Indeed, by following the same steps of \lemmaref{thm:procr}, we obtain:
+    \begin{align}
+        \nonumber\Gamma_M 	&= \argmin_{\Gamma\in\mathbb{O}}\sum_i^n\norm[F]{\Gamma \Gamma_i^\top - \mathbb{I}}^2\\
+        \nonumber&= \argmin_{\Gamma\in\mathbb{O}}\sum_i^n\braket{\Gamma\Gamma_i^\top - \mathbb{I},\; \Gamma\Gamma_i^\top - \mathbb{I}}\\
+        \nonumber&= \argmin_{\Gamma\in\mathbb{O}}\sum_i^n\left[\norm[F]{\Gamma \Gamma_i^\top}^2 + \norm[F]{\mathbb{I}}^2 - 2\braket{\Gamma\Gamma_i^\top,\; \mathbb{I}}\right]\\
+        \nonumber&= \argmin_{\Gamma\in\mathbb{O}}\sum_i^n\left[2\norm[F]{\mathbb{I}}^2 - 2\braket{\Gamma\Gamma_i^\top,\; \mathbb{I}}\right]\\
+        \nonumber&= \argmax_{\Gamma\in\mathbb{O}}\sum_i^n\braket{\Gamma\Gamma_i^\top,\mathbb{I}} = \argmax_{\Gamma\in\mathbb{O}} \sum_i^n \braket{\Gamma,\Gamma_i}\\
+        \nonumber&= \argmax_{\Gamma\in\mathbb{O}} \sum_i^n \tr\left[\Gamma^\top\Gamma_i\right] = \argmax_{\Gamma\in\mathbb{O}} \tr\left[\Gamma^\top\left(\sum_i^n \Gamma_i\right)\right]\\
+        &= \argmax_{\Gamma\in\mathbb{O}}\braket{\Gamma, \sum_i^n\Gamma_i} = UV^\top \label{eq:optiref-sol-eigvec}
+    \end{align}
+    where $U$ and $V$ are obtained from the singular value decomposition of $\sum_i^n\Gamma_i$ and in the second-to-last we used the distributive and linearity properties of the trace.
+
+
+
+    \newpage\printbibliography
+
+
+\end{document}
