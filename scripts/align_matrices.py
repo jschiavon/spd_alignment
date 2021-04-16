@@ -23,19 +23,24 @@ def optimal_reference_eigvec(Sigmas):
     return np.einsum('...ij,...jk', U, V)
 
 
-Number_of_Subjects = 10
+Number_of_Subjects = 20
+Last_subject = Number_of_Subjects
 Dimension_of_Covariances = 15
 
 Sigmas = np.zeros(shape=(2 * Number_of_Subjects, Dimension_of_Covariances, Dimension_of_Covariances))
-close_eye = np.zeros(shape=(Number_of_Subjects, Dimension_of_Covariances, Dimension_of_Covariances))
+closed_eye = np.zeros(shape=(Number_of_Subjects, Dimension_of_Covariances, Dimension_of_Covariances))
+opened_eye = np.zeros(shape=(Number_of_Subjects, Dimension_of_Covariances, Dimension_of_Covariances))
 
 for i in range(Number_of_Subjects):
     subject = i + 1
-    cl, op = create_covariances(subject)
-
-    Sigmas[i] = op
-    Sigmas[Number_of_Subjects + i] = cl
-
+    try:
+        closed_eye[i], opened_eye[i] = create_covariances(subject)
+    except FileNotFoundError:
+        print('Subject {} does not exists')
+        Last_subject = i
+        break
+    Sigmas[i] = opened_eye[i]
+    Sigmas[Number_of_Subjects + i] = closed_eye[i]
 
 ref_eigvals = optimal_reference_eigval(Sigmas)
 ref_eigvect = optimal_reference_eigvec(Sigmas)
