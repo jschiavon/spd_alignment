@@ -3,9 +3,9 @@ import numpy as np
 from os.path import join
 from tqdm import trange
 
-
-_inputfolder = join('data', 'congedo')
-_outputfolder = join('data', 'covariances')
+_datafolder = join('..', 'data')
+_inputfolder = join(_datafolder, 'congedo')
+_outputfolder = join(_datafolder, 'covariances')
 
 
 def _obtain_path(filename, folder=_inputfolder):
