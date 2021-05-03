@@ -1,0 +1,233 @@
+\documentclass[xcolor=dvipsnames,aspectratio=169]{beamer}
+\usetheme[compressminiframes,nosectionpages]{sorbonne}
+\newcommand{\alerted}[1]{\alert{\bfseries #1}}
+\newcommand{\heading}[1]{\alerted{\large\scshape #1}}
+
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,braket}
+\usepackage{ragged2e}
+\usepackage{graphicx, subfig}
+
+\usepackage[style=authoryear,backend=biber,doi=false,isbn=false,url=false,date=year]{biblatex}
+
+\apptocmd{\frame}{}{\justifying}{}
+\usepackage[default]{sourcesanspro}
+\newlength{\plotsize}
+\setlength{\plotsize}{0.7\textwidth}
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator{\tr}{Tr}
+\DeclareMathOperator{\logm}{Log}
+\newcommand{\norm}[2][]{\left\Vert#2\right\Vert_{#1}}
+
+\setbeamertemplate{footline}{
+    \hfill%
+    \usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \setbeamertemplate{page number in head/foot}[framenumber]%
+    \usebeamertemplate*{page number in head/foot}\kern1em\vskip2pt%
+}
+\newcommand{\mat}[1]{\mathbf{#1}}
+
+\title{\Large Orthogonal Procrustes problem for SPD matrices}
+\subtitle{\large Paperinick}
+\author{Jacopo Schiavon}
+\date{\today}
+\institute[Dep. Statistical Sciences --- UNIPD]{Department of Statistical Sciences\\ University of Padova}
+
+\addbibresource{biblio.bib}
+
+\begin{document}
+    \begin{frame}[plain]
+        \maketitle
+    \end{frame}
+
+    \section{Procrustes problem}
+    \begin{frame}[t]{Procrustes problem}
+        \begin{center}
+            \itshape
+            For that hero punished those who offered him violence in the manner in which they had plotted to serve him.
+        \end{center}
+
+%        \pause
+        Given $A$ and $B$ two matrices and $\mathbb{O}$ the space of orthogonal matrices, the classical Procrustes problem ask to find a matrix $R$ such that
+        \begin{equation*}
+            R = \argmin_{\Omega\in\mathbb{O}} \norm[F]{\Omega A - B}
+        \end{equation*}
+
+        \pause
+        The solution to this problem is known
+        \begin{align*}
+            R &= UV^\intercal & BA^\intercal &= UDV^\intercal
+        \end{align*}
+
+    \end{frame}
+
+    \begin{frame}[t]{What happens with SPD matrices}
+        Multiple differences:
+        \begin{itemize}
+            \item The Frobenius norm is not appropriate: use of Affine-Invariant norm
+            \begin{equation*}
+                \norm[AI]{\Sigma_1 - \Sigma_2} = \norm[F]{\logm\left[\Sigma_1^{-1/2}\Sigma_2\Sigma_1^{-1/2}\right]}
+            \end{equation*}
+            \pause\item Orthogonal matrices don't preserve symmetry or positive definiteness: use an appropriate transformation
+            \begin{align*}
+                T_\Omega\colon \mathcal{S}^+ &\to \mathcal{S}^+\\
+                \Sigma &\mapsto T_\Omega(\Sigma) = \Omega\Sigma \Omega^\intercal
+            \end{align*}
+            (if $\Omega\in\mathbb{O}$ this preserve also the determinant thus behaves as an orthogonal transformation)
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}[t]{What happens with SPD matrices}
+        The Procrustes problem can be restated as
+        \begin{equation*}
+            R = \argmin_{\Omega\in\mathbb{O}}\norm[AI]{\Sigma_1 - T_\Omega(\Sigma_2)}
+        \end{equation*}
+
+        \pause
+        A proof for this result is in \cite{bhatia_procrustes_2019} and the solution is
+        \begin{align*}
+            R &= \Gamma_1\Gamma_2^\intercal &   \Sigma_i &= \Gamma_i\Lambda_i\Gamma_i^\intercal
+        \end{align*}
+
+%        \pause
+%        The proof uses a complicated result by Gel'fand, Naimark and Lidskii that states:
+%        \begin{equation*}
+%            \log\lambda^\downarrow(\Sigma_1) + \log\lambda^\uparrow(\Sigma_2) \prec \log\lambda(\Sigma_1\Sigma_2) \prec \log\lambda^\downarrow(\Sigma_1) + \log\lambda^\downarrow(\Sigma_2)
+%        \end{equation*}
+    \end{frame}
+
+    \section{Generalized Procrustes problem}
+    \begin{frame}[t]{Multiple matrices}
+        In general one might want to extend this analysis to a set of $K$ matrices ($K>2$) $X_i$ (generalized Procrustes problem)
+        \begin{equation*}
+            \argmin_{\Omega_1\dots\Omega_K\in\mathbb{O}}\sum_{i>j}\norm[F]{\Omega_iX_i - \Omega_jX_j}
+        \end{equation*}
+        \pause
+        In this case one uses this identity
+        \begin{align*}
+            \sum_{i>j}\norm[F]{\Omega_iX_i - \Omega_jX_j}  &= K\sum_i\norm[F]{\Omega_iX_i - G}  &   G &= K^{-1}\sum_j\Omega_jX_j
+        \end{align*}
+        to build a two step algorithm (start with a random initialization of the $\Omega_i$)
+        \begin{enumerate}
+            \item Compute $G$
+            \item Decouple the problem in $K$ simple Procrustes problem and obtain the new $\Omega_i$
+        \end{enumerate}
+        Repeat until convergence
+
+    \end{frame}
+
+    \begin{frame}[t]{What happens with SPD matrices (part II)}
+        The identity of before \alerted{most probably} does not hold. We decide to focus on a slightly different version of the right hand side:
+        \begin{enumerate}
+            \item Solve the $K$ independent Procrustes
+            \begin{equation*}
+                \argmin_{\Omega_1\dots\Omega_K\in\mathbb{O}}\sum_i\norm[AI]{M - T_{\Omega_i}(\Sigma_i)}
+            \end{equation*}
+            given a \emph{known} reference $M$
+            \pause\item Compute the optimal reference $M$ that satisfies
+            \begin{equation*}
+                \argmin_{M\in\mathcal{S}^+}\sum_i\norm[AI]{M - T_{\Omega_i}(\Sigma_i)}
+            \end{equation*}
+            with $\Omega_i$ known from step 1.
+        \end{enumerate}
+    \end{frame}
+
+    \begin{frame}[t]{What happens with SPD matrices (part II)}
+        Solution to step 1 is simple (and analytical)
+        \begin{equation*}
+            \Omega_i = \Gamma_M\Gamma_i^\intercal
+        \end{equation*}
+
+        \pause
+        There is an analytical solution also for step 2, but it provides only the eigenvalues
+        \begin{equation*}
+            \lambda_h^{(M)} = \left[\prod_i^K\lambda_h^{(i)}\right]^{\frac{1}{K}}
+        \end{equation*}
+
+        \pause
+        There are infinite solutions $M = \Gamma_M\Lambda_M\Gamma_M^\intercal$ depending on the choice $\Gamma_M$: how to choose it?
+    \end{frame}
+
+    \begin{frame}[t]{What happens with SPD matrices (part II)}
+        Minimization of a \alerted{rotational effort}: the matrix $\Gamma_M$ that provides the \emph{smallest} total rotation
+        \begin{equation*}
+            \Gamma_M = \argmin_{\Gamma\in\mathbb{O}}\sum_i\norm[F]{\Gamma\Gamma_i^\intercal - \mathbb{I}}
+        \end{equation*}
+        This can be seen as a special case of the generalized Procrustes problem and has solution
+        \begin{align*}
+            \Gamma_M &= UV^\intercal &  \sum_i\Gamma_i &= UDV^\intercal
+        \end{align*}
+    \end{frame}
+
+    \section{Applications}
+    \begin{frame}[t]{Applications}
+        In EEG data one might be interested in observing the \alert{empirical covariance matrix} between signal recorded from different point of the skull of an individual, as this is a proxy for the \alert{connections between various regions of the brain}.
+
+        One obtains one SPD matrix for each individual in the study and might be interested to compare them (for instance to detect anomalies due to various diseases).
+
+        But there are various slight differences between each individual data that are not related to the actual connections between brain regions (for instance, the position of the electrodes on the scalp): this add artifacts to the data that hide the actual differences between individuals.
+
+        \nocite{eeg_data}
+    \end{frame}
+
+    \begin{frame}{Applications}
+
+        \begin{minipage}{0.3\textwidth}
+            \centering
+            \includegraphics[width=0.75\textwidth]{../plots/subject_1}
+
+            $\Downarrow$
+
+            \includegraphics[width=0.75\textwidth]{../plots/subject_1_rot}
+        \end{minipage}\hfill
+        \begin{minipage}{0.3\textwidth}
+            \centering
+            \includegraphics[width=0.75\textwidth]{../plots/subject_3}
+
+            $\Downarrow$
+
+            \includegraphics[width=0.75\textwidth]{../plots/subject_3_rot}
+        \end{minipage}\hfill
+        \begin{minipage}{0.3\textwidth}
+            \centering
+            \includegraphics[width=0.75\textwidth]{../plots/subject_6}
+
+            $\Downarrow$
+
+            \includegraphics[width=0.75\textwidth]{../plots/subject_6_rot}
+        \end{minipage}
+    \end{frame}
+
+    \begin{frame}{Applications}
+            \begin{minipage}{0.42\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{../plots/bari}
+            \end{minipage}\hfill
+            \begin{minipage}{0.05\textwidth}
+                \centering
+                $\Rightarrow$
+            \end{minipage}\hfill
+            \begin{minipage}{0.42\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{../plots/bari_rot}
+            \end{minipage}
+
+    \end{frame}
+
+     \appendix
+%    {\begingroup
+%        \setbeamercolor{background canvas}{bg=sorbonneBlueDark}
+%        \begin{frame}[plain, c, noframenumbering]
+%            \centering\huge\scshape
+%            \textcolor{white}{Thank you for your attention}
+%        \end{frame}
+%        \endgroup}
+
+    \begin{frame}[allowframebreaks,noframenumbering,plain]{References}
+        \nocite{gower_procrustes_2004}\nocite{bhatia_procrustes_2019}\nocite{Bhatia2007}
+        \printbibliography
+    \end{frame}
+
+\end{document}
